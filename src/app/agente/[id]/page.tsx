@@ -6,14 +6,7 @@ import {
   SQUAD_LABELS,
   SQUAD_COLORS,
 } from "@/data/agents";
-
-function getInitials(name: string) {
-  return name
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .slice(0, 2);
-}
+import AgentAvatar from "@/components/AgentAvatar";
 
 function padNumber(n: number) {
   return String(n).padStart(2, "0");
@@ -66,14 +59,7 @@ export default async function AgentPage({
         <div className="mb-8">
           <div className="flex items-start gap-5">
             {/* Avatar */}
-            <div
-              className="flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-xl text-xl font-bold text-white"
-              style={{
-                background: `linear-gradient(135deg, ${agent.color}, ${agent.color}88)`,
-              }}
-            >
-              {getInitials(agent.name)}
-            </div>
+            <AgentAvatar agentId={agent.id} name={agent.name} color={agent.color} size={80} className="rounded-xl" />
 
             <div className="min-w-0 flex-1">
               {/* Name + number */}
@@ -297,14 +283,7 @@ export default async function AgentPage({
                   href={`/agente/${parentAgent.id}`}
                   className="inline-flex items-center gap-3 rounded-lg border border-white/5 bg-bg-surface px-4 py-3 transition-colors hover:bg-bg-card-hover"
                 >
-                  <div
-                    className="flex h-8 w-8 items-center justify-center rounded-lg text-[10px] font-bold text-white"
-                    style={{
-                      background: `linear-gradient(135deg, ${parentAgent.color}, ${parentAgent.color}88)`,
-                    }}
-                  >
-                    {getInitials(parentAgent.name)}
-                  </div>
+                  <AgentAvatar agentId={parentAgent.id} name={parentAgent.name} color={parentAgent.color} size={32} />
                   <div>
                     <p className="text-sm font-semibold text-text-primary">
                       {parentAgent.name}
@@ -335,14 +314,7 @@ export default async function AgentPage({
                     href={`/agente/${sub.id}`}
                     className="flex items-center gap-3 rounded-lg border border-white/5 bg-bg-surface px-4 py-3 transition-colors hover:bg-bg-card-hover"
                   >
-                    <div
-                      className="flex h-8 w-8 items-center justify-center rounded-lg text-[10px] font-bold text-white"
-                      style={{
-                        background: `linear-gradient(135deg, ${sub.color}, ${sub.color}88)`,
-                      }}
-                    >
-                      {getInitials(sub.name)}
-                    </div>
+                    <AgentAvatar agentId={sub.id} name={sub.name} color={sub.color} size={32} />
                     <div className="min-w-0">
                       <p className="truncate text-sm font-semibold text-text-primary">
                         {sub.name}

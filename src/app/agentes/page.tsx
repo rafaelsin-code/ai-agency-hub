@@ -1,27 +1,6 @@
 import Link from "next/link";
 import { agents, getSquadGroups, SQUAD_COLORS, type SquadName } from "@/data/agents";
-
-function AgentAvatar({
-  name,
-  color,
-}: {
-  name: string;
-  color: string;
-}) {
-  const initials = name.slice(0, 2).toUpperCase();
-  return (
-    <div
-      className="flex shrink-0 items-center justify-center rounded-lg font-mono font-bold text-white/90 text-sm"
-      style={{
-        width: 48,
-        height: 48,
-        background: `linear-gradient(135deg, ${color}, ${color}88)`,
-      }}
-    >
-      {initials}
-    </div>
-  );
-}
+import AgentAvatar from "@/components/AgentAvatar";
 
 function StatusBadge({ status }: { status: string }) {
   if (status === "autonomo") {
@@ -82,7 +61,7 @@ export default function AgentesPage() {
               <Link key={agent.id} href={`/agente/${agent.id}`}>
                 <div className="group relative flex gap-4 rounded-xl bg-bg-card p-5 transition-colors hover:bg-bg-card-hover cursor-pointer border border-white/5">
                   {/* Avatar */}
-                  <AgentAvatar name={agent.name} color={agent.color} />
+                  <AgentAvatar agentId={agent.id} name={agent.name} color={agent.color} size={48} />
 
                   {/* Content */}
                   <div className="flex-1 min-w-0">

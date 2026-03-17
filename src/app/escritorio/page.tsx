@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { agents } from "@/data/agents";
+import AgentAvatar from "@/components/AgentAvatar";
 
 const activeAgents = agents.filter((a) => a.status !== "em-breve");
 const orion = agents.find((a) => a.id === "orion")!;
@@ -10,31 +11,6 @@ const emBreveSlots = [
   { label: "Próximo agente" },
   { label: "Próximo agente" },
 ];
-
-function AgentAvatar({
-  name,
-  color,
-  size = 64,
-}: {
-  name: string;
-  color: string;
-  size?: number;
-}) {
-  const initials = name.slice(0, 2).toUpperCase();
-  return (
-    <div
-      className="flex items-center justify-center rounded-lg font-mono font-bold text-white/90"
-      style={{
-        width: size,
-        height: size,
-        background: `linear-gradient(135deg, ${color}, ${color}88)`,
-        fontSize: size * 0.3,
-      }}
-    >
-      {initials}
-    </div>
-  );
-}
 
 function StatusDot({ status }: { status: string }) {
   const color =
@@ -70,7 +46,7 @@ export default function EscritorioPage() {
             }}
           />
           <div className="relative flex items-center gap-6">
-            <AgentAvatar name={orion.name} color={orion.color} size={80} />
+            <AgentAvatar agentId={orion.id} name={orion.name} color={orion.color} size={80} />
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-3 mb-1">
                 <h2 className="text-lg font-bold text-text-primary tracking-wide">
@@ -103,7 +79,7 @@ export default function EscritorioPage() {
         {otherAgents.map((agent) => (
           <Link key={agent.id} href={`/agente/${agent.id}`}>
             <div className="group flex flex-col items-center gap-3 rounded-xl bg-bg-card p-5 transition-colors hover:bg-bg-card-hover cursor-pointer border border-white/5 h-full">
-              <AgentAvatar name={agent.name} color={agent.color} />
+              <AgentAvatar agentId={agent.id} name={agent.name} color={agent.color} />
               <div className="text-center min-w-0 w-full">
                 <div className="flex items-center justify-center gap-2 mb-0.5">
                   <p className="text-xs font-bold uppercase tracking-wide text-text-primary truncate">

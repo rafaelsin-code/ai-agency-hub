@@ -8,6 +8,7 @@ import {
   FolderOpen,
 } from "lucide-react";
 import { agents } from "@/data/agents";
+import AgentAvatar from "@/components/AgentAvatar";
 
 const kpis = [
   {
@@ -105,13 +106,6 @@ function getStatusBadge(status: ActivityStatus) {
   );
 }
 
-function getAgentInitials(name: string) {
-  return name
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .slice(0, 2);
-}
 
 export default function Home() {
   return (
@@ -167,12 +161,7 @@ export default function Home() {
                   className="flex items-start gap-4 rounded-lg border border-white/5 bg-bg-surface p-4 transition-colors hover:bg-bg-card-hover"
                 >
                   {/* Avatar */}
-                  <div
-                    className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
-                    style={{ backgroundColor: agent.color }}
-                  >
-                    {getAgentInitials(agent.name)}
-                  </div>
+                  <AgentAvatar agentId={agent.id} name={agent.name} color={agent.color} size={40} className="rounded-full" />
 
                   {/* Content */}
                   <div className="min-w-0 flex-1">
