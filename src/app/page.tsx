@@ -1,65 +1,251 @@
-import Image from "next/image";
+import {
+  Users,
+  CheckCircle,
+  Zap,
+  Star,
+  ExternalLink,
+  ChevronRight,
+  FolderOpen,
+} from "lucide-react";
+import { agents } from "@/data/agents";
+
+const kpis = [
+  {
+    label: "Agentes Ativos",
+    value: 32,
+    icon: Users,
+    borderColor: "border-accent-purple",
+    iconColor: "text-accent-purple",
+  },
+  {
+    label: "Entregas Hoje",
+    value: 12,
+    icon: CheckCircle,
+    borderColor: "border-accent-green",
+    iconColor: "text-accent-green",
+  },
+  {
+    label: "Missões Ativas",
+    value: 3,
+    icon: Zap,
+    borderColor: "border-accent-cyan",
+    iconColor: "text-accent-cyan",
+  },
+  {
+    label: "Total Materiais",
+    value: 847,
+    icon: Star,
+    borderColor: "border-accent-amber",
+    iconColor: "text-accent-amber",
+  },
+];
+
+type ActivityStatus = "PRONTO" | "EM ANDAMENTO" | "ERRO";
+
+interface ActivityItem {
+  agentId: string;
+  message: string;
+  timestamp: string;
+  status: ActivityStatus;
+}
+
+const recentActivity: ActivityItem[] = [
+  {
+    agentId: "copy",
+    message: "Gerou 3 variações de copy para página de captura",
+    timestamp: "há 12 min",
+    status: "PRONTO",
+  },
+  {
+    agentId: "spark",
+    message: "Criando briefing de conteúdo semanal — pilar Educativo",
+    timestamp: "há 28 min",
+    status: "EM ANDAMENTO",
+  },
+  {
+    agentId: "builder",
+    message: "Landing page V2 publicada com novo CTA glow",
+    timestamp: "há 1h",
+    status: "PRONTO",
+  },
+  {
+    agentId: "eagle",
+    message: "Falha na verificação de compliance — claim proibido detectado",
+    timestamp: "há 2h",
+    status: "ERRO",
+  },
+  {
+    agentId: "orion",
+    message: "Distribuiu missão 'Lançamento Módulo 5' para 4 squads",
+    timestamp: "há 3h",
+    status: "PRONTO",
+  },
+];
+
+const quickActions = [
+  "Configurar briefing do cliente",
+  "Rodar Máquina de Criativos",
+  "Criar páginas de captura",
+  "Configurar email sequences",
+];
+
+function getStatusBadge(status: ActivityStatus) {
+  const styles: Record<ActivityStatus, string> = {
+    PRONTO: "bg-accent-green/15 text-accent-green",
+    "EM ANDAMENTO": "bg-accent-amber/15 text-accent-amber",
+    ERRO: "bg-accent-rose/15 text-accent-rose",
+  };
+
+  return (
+    <span
+      className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold tracking-wider ${styles[status]}`}
+    >
+      {status}
+    </span>
+  );
+}
+
+function getAgentInitials(name: string) {
+  return name
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2);
+}
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <div className="min-h-screen p-8 lg:p-12">
+      {/* Header */}
+      <div className="mb-10">
+        <span className="mb-2 block text-xs font-semibold uppercase tracking-widest text-accent-purple">
+          Dashboard
+        </span>
+        <h1 className="text-3xl font-bold text-text-primary lg:text-4xl">
+          Super Aprendizagem
+        </h1>
+        <p className="mt-2 text-sm text-text-muted">
+          Visão geral da produção e status dos agentes para este cliente.
+        </p>
+      </div>
+
+      {/* KPI Cards */}
+      <div className="mb-10 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {kpis.map((kpi) => {
+          const Icon = kpi.icon;
+          return (
+            <div
+              key={kpi.label}
+              className={`rounded-xl border-t-2 ${kpi.borderColor} bg-bg-card p-6`}
             >
-              Templates
-            </a>{" "}
-            or the{" "}
+              <Icon className={`mb-3 h-5 w-5 ${kpi.iconColor} opacity-60`} />
+              <p className="text-3xl font-bold text-text-primary">
+                {kpi.value}
+              </p>
+              <p className="mt-1 text-sm text-text-muted">{kpi.label}</p>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Bottom Section */}
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+        {/* Atividade Recente — 2/3 */}
+        <div className="rounded-xl bg-bg-card p-6 xl:col-span-2">
+          <h2 className="mb-5 text-lg font-semibold text-text-primary">
+            Atividade Recente
+          </h2>
+
+          <div className="space-y-4">
+            {recentActivity.map((item, i) => {
+              const agent = agents.find((a) => a.id === item.agentId);
+              if (!agent) return null;
+
+              return (
+                <div
+                  key={i}
+                  className="flex items-start gap-4 rounded-lg border border-white/5 bg-bg-surface p-4 transition-colors hover:bg-bg-card-hover"
+                >
+                  {/* Avatar */}
+                  <div
+                    className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
+                    style={{ backgroundColor: agent.color }}
+                  >
+                    {getAgentInitials(agent.name)}
+                  </div>
+
+                  {/* Content */}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold text-text-primary">
+                        {agent.name}
+                      </span>
+                      {getStatusBadge(item.status)}
+                    </div>
+                    <p className="mt-0.5 text-sm text-text-muted">
+                      {item.message}
+                    </p>
+                  </div>
+
+                  {/* Timestamp */}
+                  <span className="flex-shrink-0 text-xs text-text-dimmed">
+                    {item.timestamp}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Acesso Rápido — 1/3 */}
+        <div className="space-y-6">
+          {/* Google Drive */}
+          <div className="rounded-xl bg-bg-card p-6">
+            <h2 className="mb-4 text-lg font-semibold text-text-primary">
+              Acesso Rápido
+            </h2>
+
             <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+              href="#"
+              className="flex items-center gap-4 rounded-lg border border-white/5 bg-bg-surface p-4 transition-colors hover:bg-bg-card-hover"
             >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent-amber/15">
+                <FolderOpen className="h-5 w-5 text-accent-amber" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-text-primary">
+                  Google Drive
+                </p>
+                <p className="text-xs text-text-muted">
+                  Abrir pasta de materiais do cliente
+                </p>
+              </div>
+              <ExternalLink className="h-4 w-4 text-text-dimmed" />
+            </a>
+          </div>
+
+          {/* Próximas Ações */}
+          <div className="rounded-xl bg-bg-card p-6">
+            <h2 className="mb-4 text-lg font-semibold text-text-primary">
+              Próximas Ações
+            </h2>
+
+            <ul className="space-y-3">
+              {quickActions.map((action) => (
+                <li key={action}>
+                  <a
+                    href="#"
+                    className="flex items-center gap-3 rounded-lg border border-white/5 bg-bg-surface px-4 py-3 text-sm text-text-muted transition-colors hover:bg-bg-card-hover hover:text-text-primary"
+                  >
+                    <ChevronRight className="h-4 w-4 text-accent-purple" />
+                    {action}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      </div>
     </div>
   );
 }
