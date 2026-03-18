@@ -1,7 +1,14 @@
 import fs from "fs";
 import path from "path";
 
-const API_KEY = "AIzaSyBtgIqDnRY9MxZfmeuKmNePQJ78J4_Rtb0";
+const envContent = fs.readFileSync(".env.local", "utf-8");
+const API_KEY = envContent.match(/GEMINI_API_KEY=(.+)/)?.[1]?.trim();
+
+if (!API_KEY) {
+  console.error("❌ GEMINI_API_KEY not found in .env.local");
+  process.exit(1);
+}
+
 const MODEL = "nano-banana-pro-preview";
 const OUTPUT_DIR = path.join(process.cwd(), "public/avatars");
 
