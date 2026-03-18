@@ -4,47 +4,42 @@ import { useState, useRef, useEffect } from "react";
 import AgentAvatar from "@/components/AgentAvatar";
 import { agents, getSquadGroups, SQUAD_COLORS, Agent, SquadName } from "@/data/agents";
 
-// ── Mock working agents ──
-const WORKING_AGENTS: Record<string, string> = {
-  copy: "Gerando 5 variações de copy...",
-  spark: "Brainstorming ideias da semana...",
-  orion: "Distribuindo tarefas para squads...",
-  eagle: "Revisando entregáveis pendentes...",
-};
-
-// ── Mock agent responses by role keywords ──
+// ── Mock agent responses — more specific per agent ──
 function getMockResponse(agent: Agent): string {
-  const name = agent.name;
+  const id = agent.id;
   const responses: Record<string, string[]> = {
     copy: [
       "Preparei 3 variações de headline usando AIDA. Quer que eu aplique PAS também?",
       "Analisei o briefing. Sugiro um ângulo emocional com prova social. Posso detalhar?",
+      "Criei o copy do email com subject line A/B. Taxa de abertura esperada: 28%.",
     ],
-    vendas: [
-      "Pipeline atualizado. Temos 12 leads quentes prontos para follow-up.",
-      "Sequência de outreach criada com 5 mensagens. Taxa esperada: 15% de resposta.",
+    spark: [
+      "Brainstorm concluído! Tenho 12 ideias de conteúdo alinhadas com os trends da semana.",
+      "Mapeei 5 ângulos criativos para a campanha. Posso desenvolver os roteiros?",
+      "Ideias prontas: 3 hooks virais, 2 conceitos de carrossel e 1 série de reels.",
     ],
-    marketing: [
-      "Calendário editorial da semana montado. 7 posts, 3 stories/dia, 2 reels.",
-      "Métricas do mês: engajamento subiu 23%. Reels performando 3x mais que carrossel.",
+    orion: [
+      "Tarefas distribuídas para os squads. Marketing com 4, Vendas com 3, Tech com 2.",
+      "Pipeline reorganizado. Priorizei por impacto e urgência. Quer ver o dashboard?",
+      "Análise estratégica pronta. Recomendo focar em conversão esta semana.",
     ],
-    tecnologia: [
-      "Landing page pronta. Lighthouse score: 98. Tempo de carregamento: 1.2s.",
-      "Integração com Meta API funcionando. Webhooks configurados e testados.",
+    storyteller: [
+      "Roteiro do vídeo pronto com 3 atos. Duração estimada: 60 segundos.",
+      "Narrativa criada com storytelling framework. Hero's journey adaptado para o produto.",
+      "Script finalizado com hooks nos primeiros 3 segundos. Pronto para gravação.",
     ],
-    default: [
-      `Tarefa recebida e processada. Relatório disponível em breve.`,
-      `Análise concluída. Posso gerar um relatório detalhado se precisar.`,
-      `Entendido. Já estou trabalhando nisso. Previsão: 2 minutos.`,
+    builder: [
+      "Landing page estruturada. Lighthouse score: 98. Tempo de carregamento: 1.1s.",
+      "Página pronta com 5 seções: hero, benefícios, prova social, FAQ e CTA. Responsiva.",
+      "Implementação concluída. Formulário integrado com webhook. Testado em 4 browsers.",
     ],
   };
 
-  const squad = agent.squad;
-  let pool = responses.default;
-  if (squad.includes("marketing")) pool = responses.marketing;
-  else if (squad === "vendas") pool = responses.vendas;
-  else if (squad === "tecnologia") pool = responses.tecnologia;
-  else if (agent.id === "copy" || agent.role.toLowerCase().includes("copy")) pool = responses.copy;
+  const pool = responses[id] || [
+    `Tarefa recebida e processada. Relatório disponível em breve.`,
+    `Análise concluída. Posso gerar um relatório detalhado se precisar.`,
+    `Entendido. Já estou trabalhando nisso. Previsão: 2 minutos.`,
+  ];
 
   return pool[Math.floor(Math.random() * pool.length)];
 }
@@ -65,11 +60,12 @@ export default function EscritorioPage() {
   const [inputValue, setInputValue] = useState("");
   const [activeTab, setActiveTab] = useState<Tab>("Chat");
   const [isTyping, setIsTyping] = useState(false);
-  const [workingAgents] = useState<Record<string, string>>(WORKING_AGENTS);
+  const [workingAgents, setWorkingAgents] = useState<Record<string, string>>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const squadGroups = getSquadGroups();
+  const activeCount = Object.keys(workingAgents).length;
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -98,10 +94,14 @@ export default function EscritorioPage() {
 
   function sendMessage() {
     if (!inputValue.trim() || !selectedAgent) return;
-    const userMsg: Message = { role: "user", content: inputValue.trim() };
+    const userText = inputValue.trim();
+    const userMsg: Message = { role: "user", content: userText };
     setMessages((prev) => [...prev, userMsg]);
     setInputValue("");
     setIsTyping(true);
+
+    // Set agent as working with the user's message
+    setWorkingAgents((prev) => ({ ...prev, [selectedAgent.id]: userText }));
 
     setTimeout(() => {
       const agentMsg: Message = {
@@ -110,47 +110,87 @@ export default function EscritorioPage() {
       };
       setMessages((prev) => [...prev, agentMsg]);
       setIsTyping(false);
-    }, 1200);
+
+      // Remove agent from working state
+      setWorkingAgents((prev) => {
+        const next = { ...prev };
+        delete next[selectedAgent.id];
+        return next;
+      });
+    }, 1800);
   }
 
   return (
-    <div className="relative h-full overflow-y-auto grid-bg">
+    <div className="relative min-h-0 h-full overflow-y-auto grid-bg">
       {/* Ambient glow */}
       <div
         className="absolute top-0 right-0 w-[600px] h-[600px] pointer-events-none ambient-glow"
         style={{
-          background: "radial-gradient(circle at top right, rgba(45,122,255,0.08), transparent 70%)",
+          background:
+            "radial-gradient(circle at top right, rgba(45,122,255,0.08), transparent 70%)",
         }}
       />
 
-      <div className="relative z-10 px-6 py-6 max-w-[1600px] mx-auto">
+      <div className="relative z-10 px-8 py-8 max-w-[1600px] mx-auto">
         {/* ── Page Header ── */}
-        <div className="flex items-center gap-3 mb-8">
-          <h1 className="text-lg font-semibold text-white">Escritorio Virtual</h1>
-          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#2D7AFF]/15 text-[#5B9AFF] border border-[#2D7AFF]/20">
-            {agents.length} agentes
-          </span>
+        <div className="mb-10">
+          <h1 className="text-2xl font-bold text-white">Escritório Virtual</h1>
+          <p className="text-sm text-[#5E7A9A] mt-1">
+            Seus agentes de IA organizados por squad. Clique para interagir.
+          </p>
+          <div className="flex items-center gap-3 mt-4">
+            <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-[#2D7AFF]/15 text-[#5B9AFF] border border-[#2D7AFF]/20">
+              {agents.length} agentes
+            </span>
+            <span
+              className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${
+                activeCount > 0
+                  ? "bg-[#00E676]/15 text-[#00E676] border-[#00E676]/20"
+                  : "bg-white/5 text-[#5E7A9A] border-white/10"
+              }`}
+            >
+              {activeCount} ativos
+            </span>
+          </div>
         </div>
 
         {/* ── Squads ── */}
-        <div className="space-y-8">
-          {squadGroups.map((group) => {
+        <div>
+          {squadGroups.map((group, groupIdx) => {
             const squadColor = SQUAD_COLORS[group.squad];
             return (
-              <div key={group.squad}>
+              <div key={group.squad} className={groupIdx > 0 ? "mt-10" : ""}>
                 {/* Squad header */}
-                <div className="flex items-center gap-3 mb-4">
-                  <span
-                    className="text-[10px] font-bold uppercase tracking-[0.2em] whitespace-nowrap"
-                    style={{ color: squadColor }}
-                  >
-                    {group.label}
-                  </span>
-                  <div className="flex-1 h-px" style={{ background: `${squadColor}25` }} />
+                <div className="mb-5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <span
+                        className="block w-2.5 h-2.5 rounded-full"
+                        style={{ backgroundColor: squadColor }}
+                      />
+                      <span
+                        className="text-sm font-bold uppercase tracking-[0.15em]"
+                        style={{ color: squadColor }}
+                      >
+                        {group.label}
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-[#5E7A9A] font-mono">
+                      {group.agents.length} agentes
+                    </span>
+                  </div>
+                  <div
+                    className="mt-2 rounded-full"
+                    style={{
+                      width: 60,
+                      height: 2,
+                      backgroundColor: squadColor,
+                    }}
+                  />
                 </div>
 
-                {/* Agent grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                {/* Agent grid — bigger cards, fewer columns */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {group.agents.map((agent) => {
                     const isWorking = workingAgents[agent.id];
                     const isAutonomo = agent.status === "autonomo";
@@ -158,8 +198,8 @@ export default function EscritorioPage() {
                       <div key={agent.id} className="relative">
                         {/* Speech bubble */}
                         {isWorking && (
-                          <div className="speech-bubble absolute -top-14 left-1/2 -translate-x-1/2 z-20 max-w-[200px]">
-                            <div className="bg-[#0A1628] border border-[#2D7AFF]/20 rounded-lg px-3 py-2 text-[10px] text-[#5B9AFF] leading-tight whitespace-nowrap">
+                          <div className="speech-bubble absolute -top-14 left-1/2 -translate-x-1/2 z-20 max-w-[220px]">
+                            <div className="bg-[#0A1628] border border-[#2D7AFF]/20 rounded-lg px-3 py-2 text-[10px] text-[#5B9AFF] leading-tight truncate">
                               {isWorking}
                             </div>
                             {/* Caret */}
@@ -167,48 +207,66 @@ export default function EscritorioPage() {
                           </div>
                         )}
 
-                        {/* Card */}
+                        {/* Card — VERTICAL layout, bigger */}
                         <button
                           onClick={() => openDrawer(agent)}
                           className={`
-                            w-full text-left rounded-xl p-4 cursor-pointer
+                            w-full rounded-2xl p-5 cursor-pointer
                             transition-all duration-200
                             border
-                            hover:-translate-y-0.5
+                            hover:-translate-y-[1px]
                             ${isWorking ? "agent-working" : ""}
                           `}
                           style={{
-                            background: "rgba(10,22,40,0.6)",
-                            borderColor: "rgba(45,122,255,0.08)",
+                            background: "rgba(10,22,40,0.5)",
+                            borderColor: "rgba(45,122,255,0.06)",
                           }}
                           onMouseEnter={(e) => {
-                            (e.currentTarget as HTMLElement).style.borderColor = "rgba(45,122,255,0.25)";
+                            (e.currentTarget as HTMLElement).style.borderColor =
+                              "rgba(45,122,255,0.2)";
+                            (e.currentTarget as HTMLElement).style.boxShadow =
+                              "0 4px 20px rgba(45,122,255,0.06)";
                           }}
                           onMouseLeave={(e) => {
-                            (e.currentTarget as HTMLElement).style.borderColor = "rgba(45,122,255,0.08)";
+                            (e.currentTarget as HTMLElement).style.borderColor =
+                              "rgba(45,122,255,0.06)";
+                            (e.currentTarget as HTMLElement).style.boxShadow = "none";
                           }}
                         >
-                          <div className="flex items-start gap-3">
-                            <AgentAvatar agentId={agent.id} name={agent.name} color={agent.color} size={56} />
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-bold text-white truncate">{agent.name}</p>
-                              <p className="text-xs text-[#5E7A9A] truncate mt-0.5">{agent.role}</p>
-                              <div className="flex items-center gap-2 mt-2">
-                                <span
-                                  className={`w-1.5 h-1.5 rounded-full ${
-                                    isAutonomo ? "status-online" : "status-busy"
-                                  }`}
-                                />
-                                <span
-                                  className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full ${
-                                    isAutonomo
-                                      ? "bg-[#00E676]/10 text-[#00E676] border border-[#00E676]/20"
-                                      : "bg-[#2D7AFF]/10 text-[#5B9AFF] border border-[#2D7AFF]/20"
-                                  }`}
-                                >
-                                  {isAutonomo ? "AUTONOMO" : "OPERADOR"}
-                                </span>
-                              </div>
+                          {/* Vertical layout: avatar centered on top */}
+                          <div className="flex flex-col items-center text-center">
+                            <AgentAvatar
+                              agentId={agent.id}
+                              name={agent.name}
+                              color={agent.color}
+                              size={72}
+                            />
+                            <p className="text-sm font-bold text-white mt-3 truncate w-full">
+                              {agent.name}
+                            </p>
+                            {agent.aka && (
+                              <p className="text-[10px] text-[#3A5068] font-mono truncate w-full">
+                                {agent.aka}
+                              </p>
+                            )}
+                            <p className="text-xs text-[#5E7A9A] mt-1 truncate w-full">
+                              {agent.role}
+                            </p>
+                            <div className="flex items-center gap-1.5 mt-3">
+                              <span
+                                className={`w-1.5 h-1.5 rounded-full ${
+                                  isAutonomo ? "status-online" : "status-busy"
+                                }`}
+                              />
+                              <span
+                                className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                                  isAutonomo
+                                    ? "bg-[#00E676]/10 text-[#00E676] border border-[#00E676]/20"
+                                    : "bg-[#2D7AFF]/10 text-[#5B9AFF] border border-[#2D7AFF]/20"
+                                }`}
+                              >
+                                {isAutonomo ? "AUTÔNOMO" : "OPERADOR"}
+                              </span>
                             </div>
                           </div>
                         </button>
@@ -269,7 +327,16 @@ export default function EscritorioPage() {
                   onClick={closeDrawer}
                   className="text-[#5E7A9A] hover:text-white transition-colors p-1"
                 >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
                     <line x1="18" y1="6" x2="6" y2="18" />
                     <line x1="6" y1="6" x2="18" y2="18" />
                   </svg>
@@ -312,7 +379,9 @@ export default function EscritorioPage() {
                 />
               )}
               {activeTab === "Overview" && <OverviewTab agent={selectedAgent} />}
-              {activeTab === "Prompt" && <PlaceholderTab text="Prompt do agente sera carregado da API" />}
+              {activeTab === "Prompt" && (
+                <PlaceholderTab text="Prompt do agente será carregado da API" />
+              )}
               {activeTab === "History" && <PlaceholderTab text="Em breve" />}
               {activeTab === "Output" && <PlaceholderTab text="Em breve" />}
               {activeTab === "Logs" && <PlaceholderTab text="Em breve" />}
@@ -409,7 +478,16 @@ function ChatTab({
             disabled={!inputValue.trim()}
             className="p-1.5 rounded-lg bg-[#2D7AFF] text-white hover:bg-[#2D7AFF]/80 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <line x1="22" y1="2" x2="11" y2="13" />
               <polygon points="22 2 15 22 11 13 2 9 22 2" />
             </svg>
@@ -426,12 +504,14 @@ function OverviewTab({ agent }: { agent: Agent }) {
     <div className="flex-1 overflow-y-auto p-5 space-y-5">
       {/* Stats */}
       <div>
-        <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#5E7A9A] mb-3">Stats</p>
+        <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#5E7A9A] mb-3">
+          Stats
+        </p>
         <div className="grid grid-cols-2 gap-2">
           {[
             { label: "Tarefas", value: agent.stats.tasksCompleted.toLocaleString() },
             { label: "Sucesso", value: `${agent.stats.successRate}%` },
-            { label: "Tempo medio", value: agent.stats.avgDuration },
+            { label: "Tempo médio", value: agent.stats.avgDuration },
             { label: "Custo total", value: `$${agent.stats.totalCost}` },
           ].map((s) => (
             <div key={s.label} className="bg-[#0A1628] border border-white/5 rounded-lg p-3">
@@ -444,7 +524,9 @@ function OverviewTab({ agent }: { agent: Agent }) {
 
       {/* Skills */}
       <div>
-        <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#5E7A9A] mb-3">Skills</p>
+        <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#5E7A9A] mb-3">
+          Skills
+        </p>
         <div className="space-y-2">
           {agent.skills.map((skill) => (
             <div key={skill.name}>
@@ -465,7 +547,9 @@ function OverviewTab({ agent }: { agent: Agent }) {
 
       {/* Specialties */}
       <div>
-        <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#5E7A9A] mb-3">Especialidades</p>
+        <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#5E7A9A] mb-3">
+          Especialidades
+        </p>
         <div className="flex flex-wrap gap-1.5">
           {agent.specialties.map((s) => (
             <span
@@ -480,7 +564,9 @@ function OverviewTab({ agent }: { agent: Agent }) {
 
       {/* Tools */}
       <div>
-        <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#5E7A9A] mb-3">Ferramentas</p>
+        <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#5E7A9A] mb-3">
+          Ferramentas
+        </p>
         <div className="flex flex-wrap gap-1.5">
           {agent.tools.map((t) => (
             <span

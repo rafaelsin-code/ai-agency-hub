@@ -3,23 +3,25 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  BookOpen,
   Users,
   BarChart3,
   Briefcase,
-  DollarSign,
+  Star,
   Activity,
   FileText,
   Settings,
 } from "lucide-react";
 
 const navItems = [
-  { label: "Agents", href: "/escritorio", icon: Users },
+  { label: "Briefing", href: "/briefing", icon: BookOpen },
+  { label: "Escritório", href: "/escritorio", icon: Users },
   { label: "Dashboard", href: "/", icon: BarChart3 },
-  { label: "Squads", href: "/agentes", icon: Briefcase },
-  { label: "Deliverables", href: "/galeria", icon: DollarSign },
-  { label: "Activity", href: "/atividade", icon: Activity },
+  { label: "Agentes", href: "/agentes", icon: Briefcase },
+  { label: "Galeria", href: "/galeria", icon: Star },
+  { label: "Atividade", href: "/atividade", icon: Activity },
   { label: "Logs", href: "/logs", icon: FileText },
-  { label: "Settings", href: "/configuracoes", icon: Settings },
+  { label: "Configurações", href: "/configuracoes", icon: Settings },
 ];
 
 export default function Sidebar() {

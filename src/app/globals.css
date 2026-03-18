@@ -62,7 +62,6 @@ body {
   background: var(--bg-deep);
   color: var(--text-primary);
   font-family: var(--font-sans), system-ui, sans-serif;
-  overflow: hidden;
 }
 
 /* Glow effects */
