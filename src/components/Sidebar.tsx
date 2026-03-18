@@ -11,10 +11,12 @@ import {
   Activity,
   FileText,
   Settings,
+  Workflow,
 } from "lucide-react";
 
 const navItems = [
   { label: "Briefing", href: "/briefing", icon: BookOpen },
+  { label: "Pipelines", href: "/pipelines", icon: Workflow },
   { label: "Escritório", href: "/escritorio", icon: Users },
   { label: "Dashboard", href: "/", icon: BarChart3 },
   { label: "Agentes", href: "/agentes", icon: Briefcase },

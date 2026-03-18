@@ -61,10 +61,14 @@ export default function EscritorioPage() {
   const [activeTab, setActiveTab] = useState<Tab>("Chat");
   const [isTyping, setIsTyping] = useState(false);
   const [workingAgents, setWorkingAgents] = useState<Record<string, string>>({});
+  const [filterSquad, setFilterSquad] = useState<string>("todos");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const squadGroups = getSquadGroups();
+  const filteredGroups = filterSquad === "todos"
+    ? squadGroups
+    : squadGroups.filter(g => g.squad === filterSquad);
   const activeCount = Object.keys(workingAgents).length;
 
   useEffect(() => {
@@ -154,9 +158,40 @@ export default function EscritorioPage() {
           </div>
         </div>
 
+        {/* Squad Filter */}
+        <div className="flex items-center gap-2 mb-8 flex-wrap">
+          <button
+            onClick={() => setFilterSquad("todos")}
+            className={`text-xs font-semibold px-3 py-1.5 rounded-full transition-all cursor-pointer ${
+              filterSquad === "todos"
+                ? "bg-[#2D7AFF] text-white"
+                : "bg-[#0A1628] text-[#5E7A9A] border border-[rgba(45,122,255,0.1)] hover:border-[rgba(45,122,255,0.3)] hover:text-white"
+            }`}
+          >
+            Todos
+          </button>
+          {squadGroups.map((group) => (
+            <button
+              key={group.squad}
+              onClick={() => setFilterSquad(group.squad)}
+              className={`text-xs font-semibold px-3 py-1.5 rounded-full transition-all cursor-pointer ${
+                filterSquad === group.squad
+                  ? "text-white"
+                  : "text-[#5E7A9A] border border-[rgba(45,122,255,0.1)] hover:text-white"
+              }`}
+              style={{
+                background: filterSquad === group.squad ? SQUAD_COLORS[group.squad] : "#0A1628",
+                borderColor: filterSquad === group.squad ? SQUAD_COLORS[group.squad] : undefined,
+              }}
+            >
+              {group.label}
+            </button>
+          ))}
+        </div>
+
         {/* ── Squads ── */}
         <div>
-          {squadGroups.map((group, groupIdx) => {
+          {filteredGroups.map((group, groupIdx) => {
             const squadColor = SQUAD_COLORS[group.squad];
             return (
               <div key={group.squad} className={groupIdx > 0 ? "mt-10" : ""}>
