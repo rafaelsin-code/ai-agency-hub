@@ -4,46 +4,6 @@ import { useState, useRef, useEffect } from "react";
 import AgentAvatar from "@/components/AgentAvatar";
 import { agents, getSquadGroups, SQUAD_COLORS, Agent, SquadName } from "@/data/agents";
 
-// ── Mock agent responses — more specific per agent ──
-function getMockResponse(agent: Agent): string {
-  const id = agent.id;
-  const responses: Record<string, string[]> = {
-    copy: [
-      "Preparei 3 variações de headline usando AIDA. Quer que eu aplique PAS também?",
-      "Analisei o briefing. Sugiro um ângulo emocional com prova social. Posso detalhar?",
-      "Criei o copy do email com subject line A/B. Taxa de abertura esperada: 28%.",
-    ],
-    spark: [
-      "Brainstorm concluído! Tenho 12 ideias de conteúdo alinhadas com os trends da semana.",
-      "Mapeei 5 ângulos criativos para a campanha. Posso desenvolver os roteiros?",
-      "Ideias prontas: 3 hooks virais, 2 conceitos de carrossel e 1 série de reels.",
-    ],
-    orion: [
-      "Tarefas distribuídas para os squads. Marketing com 4, Vendas com 3, Tech com 2.",
-      "Pipeline reorganizado. Priorizei por impacto e urgência. Quer ver o dashboard?",
-      "Análise estratégica pronta. Recomendo focar em conversão esta semana.",
-    ],
-    storyteller: [
-      "Roteiro do vídeo pronto com 3 atos. Duração estimada: 60 segundos.",
-      "Narrativa criada com storytelling framework. Hero's journey adaptado para o produto.",
-      "Script finalizado com hooks nos primeiros 3 segundos. Pronto para gravação.",
-    ],
-    builder: [
-      "Landing page estruturada. Lighthouse score: 98. Tempo de carregamento: 1.1s.",
-      "Página pronta com 5 seções: hero, benefícios, prova social, FAQ e CTA. Responsiva.",
-      "Implementação concluída. Formulário integrado com webhook. Testado em 4 browsers.",
-    ],
-  };
-
-  const pool = responses[id] || [
-    `Tarefa recebida e processada. Relatório disponível em breve.`,
-    `Análise concluída. Posso gerar um relatório detalhado se precisar.`,
-    `Entendido. Já estou trabalhando nisso. Previsão: 2 minutos.`,
-  ];
-
-  return pool[Math.floor(Math.random() * pool.length)];
-}
-
 // ── Tabs ──
 const TABS = ["Chat", "Overview", "Prompt", "History", "Output", "Logs"] as const;
 type Tab = (typeof TABS)[number];
@@ -96,32 +56,53 @@ export default function EscritorioPage() {
     setIsTyping(false);
   }
 
-  function sendMessage() {
-    if (!inputValue.trim() || !selectedAgent) return;
+  async function sendMessage() {
+    if (!inputValue.trim() || !selectedAgent || isTyping) return;
     const userText = inputValue.trim();
     const userMsg: Message = { role: "user", content: userText };
     setMessages((prev) => [...prev, userMsg]);
     setInputValue("");
     setIsTyping(true);
 
-    // Set agent as working with the user's message
+    // Set agent as working
     setWorkingAgents((prev) => ({ ...prev, [selectedAgent.id]: userText }));
 
-    setTimeout(() => {
-      const agentMsg: Message = {
-        role: "agent",
-        content: getMockResponse(selectedAgent),
-      };
-      setMessages((prev) => [...prev, agentMsg]);
-      setIsTyping(false);
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          agentId: selectedAgent.id,
+          message: userText,
+        }),
+      });
 
-      // Remove agent from working state
+      const data = await res.json();
+
+      if (!res.ok) {
+        setMessages((prev) => [
+          ...prev,
+          { role: "agent", content: `Erro: ${data.error || "Falha ao processar"}` },
+        ]);
+      } else {
+        setMessages((prev) => [
+          ...prev,
+          { role: "agent", content: data.response },
+        ]);
+      }
+    } catch (err) {
+      setMessages((prev) => [
+        ...prev,
+        { role: "agent", content: "Erro de conexão. Tente novamente." },
+      ]);
+    } finally {
+      setIsTyping(false);
       setWorkingAgents((prev) => {
         const next = { ...prev };
         delete next[selectedAgent.id];
         return next;
       });
-    }, 1800);
+    }
   }
 
   return (
