@@ -116,6 +116,7 @@ export async function orchestrate(
         userMessage: message,
         context: Object.keys(context).length > 0 ? context : undefined,
         briefing,
+        mode: "pipeline",
       });
 
       step.status = result.success ? "completed" : "failed";
@@ -154,5 +155,5 @@ export async function runSingleAgent(
   message: string,
   briefing?: string
 ): Promise<AgentRunResult> {
-  return runAgent({ agentId, userMessage: message, briefing });
+  return runAgent({ agentId, userMessage: message, briefing, mode: "chat" });
 }

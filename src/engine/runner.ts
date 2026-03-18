@@ -3,11 +3,14 @@ import path from "path";
 import { callGemini, TIER_MODELS, calculateCost } from "@/integrations/gemini";
 import { agents } from "@/data/agents";
 
+export type RunMode = "chat" | "pipeline";
+
 export interface AgentRunInput {
   agentId: string;
   userMessage: string;
   context?: Record<string, unknown>;
   briefing?: string;
+  mode?: RunMode;
 }
 
 export interface AgentRunResult {
@@ -79,7 +82,37 @@ export async function runAgent(input: AgentRunInput): Promise<AgentRunResult> {
   }
 
   const model = TIER_MODELS[agent.tier] || "gemini-2.5-flash";
-  const systemPrompt = loadPrompt(input.agentId);
+  const basePrompt = loadPrompt(input.agentId);
+  const mode = input.mode || "chat";
+
+  // In chat mode: respond naturally as a human, no JSON
+  // In pipeline mode: follow the structured output format from the prompt
+  const modeInstruction = mode === "chat"
+    ? `
+
+## MODO DE RESPOSTA: CONVERSA DIRETA
+
+IMPORTANTE: Você está conversando diretamente com o Rafael (dono da agência).
+- Responda como um ser humano real, com personalidade e alma
+- NUNCA responda em JSON, código ou formato estruturado
+- Use português brasileiro natural, fluido e com personalidade
+- Seja direto, entregue valor real, concreto e acionável
+- Se não tiver briefing suficiente, PEÇA o que precisa — não invente
+- Mostre sua expertise na resposta — prove que você sabe do que está falando
+- Use parágrafos, listas quando fizer sentido, formatação em markdown
+- Fale como o seu clone de gênio falaria numa conversa de alto nível
+`
+    : `
+
+## MODO DE RESPOSTA: PIPELINE
+
+Você está executando dentro de uma pipeline automatizada.
+- Siga EXATAMENTE o formato de output definido no seu prompt
+- Responda em JSON estruturado conforme especificado
+- Seja conciso e preciso — seu output alimenta o próximo agente
+`;
+
+  const systemPrompt = basePrompt + modeInstruction;
 
   // Build user message with context
   let userMessage = "";
